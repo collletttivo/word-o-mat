@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="d8d001e5-c041-4ad7-9ffe-2f74fce803fa" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../../screenshot.png" beforeDir="false" afterPath="$PROJECT_DIR$/../../screenshot.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../screenshotGlyphs.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/WordOMat.py" beforeDir="false" afterPath="$PROJECT_DIR$/Resources/WordOMat.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/catalan.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/czech.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/danish.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/dutch.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/finnish.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/french.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/german.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/hungarian.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/icelandic.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/italian.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/latin.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/norwegian.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/polish.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/slovak.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/spanish.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/ukacd.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/vietnamese.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Resources/welsh.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/html/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/info.plist" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/lib/wordcheck.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/lib/wordomat.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/catalan.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/czech.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/danish.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/dutch.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/finnish.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/french.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/german.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/hungarian.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/icelandic.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/italian.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/latin.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/norwegian.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/polish.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/slovak.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/spanish.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/ukacd.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../word-o-mat.roboFontExt/resources/vietnamese.txt" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="2vD8hJbDACMHuL8v709n3UYHULC" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-babbdf50b680-746f403e7f0c-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-241.15989.155" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d8d001e5-c041-4ad7-9ffe-2f74fce803fa" name="Changes" comment="" />
+      <created>1743668402225</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1743668402225</updated>
+    </task>
+    <servers />
+  </component>
+</project>

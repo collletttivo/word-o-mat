@@ -13,11 +13,12 @@ update to version 2.2.5, 19.12.2017
 """
 from __future__ import print_function
 
+import os
+
 import codecs
 import random
 import re
 import webbrowser
-
 
 from lib import addObserver, removeObserver, CurrentFont, registerExtensionDefaults, getExtensionDefault, setExtensionDefault, ExtensionBundle, OpenSpaceCenter, AllFonts, AccordionView
 # from vanilla.dialogs import getFile # open dialog from the vanilla version used in Glyphs 2 is not working in 10.15 (and above) any more. So if we drop Glyphs 2 support, this can be reverted
@@ -221,6 +222,7 @@ class WordomatWindow:
             "matchMode": "com.ninastoessinger.word-o-mat.matchMode",
             "matchPattern": "com.ninastoessinger.word-o-mat.matchPattern",
             "reqMarkColor": "com.ninastoessinger.word-o-mat.markColor",
+            "source": "com.ninastoessinger.word-o-mat.source"  # <-- Added this line
         }
         for variableName, pref in prefsToLoad.items():
             setattr(self, variableName, getExtensionDefault(pref))
@@ -278,38 +280,63 @@ class WordomatWindow:
         return "False"
 
     def loadDictionaries(self):
-        """Load the available wordlists and read their contents."""
+        """Load the available wordlists from the dictionaries folder structured by writing systems."""
         self.dictWords = {}
         self.allWords = []
         self.outputWords = []
 
-        self.textfiles = ['catalan', 'czech', 'danish', 'dutch', 'ukacd', 'finnish', 'french', 'german', 'hungarian', 'icelandic', 'italian', 'latin', 'norwegian', 'polish', 'slovak', 'spanish', 'vietnamese', 'welsh']
-        self.languageNames = ['Catalan', 'Czech', 'Danish', 'Dutch', 'English', 'Finnish', 'French', 'German', 'Hungarian', 'Icelandic', 'Italian', 'Latin', 'Norwegian', 'Polish', 'Slovak', 'Spanish', 'Vietnamese syllables', 'Welsh']
-        self.source = getExtensionDefault("com.ninastoessinger.word-o-mat.source", 4)
+        import os
 
-        bundle = ExtensionBundle("word-o-mat")
-        contentLimit = '*****'  # If word list file contains a header, start looking for content after this delimiter
+        # Define the path to the dictionaries folder relative to this file
+        dictFolder = os.path.join(os.path.dirname(__file__), "dictionaries")
 
-        # read included textfiles
-        for textfile in self.textfiles:
-            path = bundle.getResourceFilePath(textfile)
-            fo = codecs.open(path, mode="r", encoding="utf-8")
-            lines = fo.read()
-            fo.close()
+        # Initialize lists that will be used for the language pop-up menu
+        self.textfiles = []  # Will store tuples: (writingSystem, fileName)
+        self.languageNames = []  # List of language names for the UI pop-up
 
-            self.dictWords[textfile] = lines.splitlines()  # this assumes no whitespace has to be stripped
+        contentLimit = '*****'  # Delimiter to strip header if present
 
-            # strip header
-            try:
-                contentStart = self.dictWords[textfile].index(contentLimit) + 1
-                self.dictWords[textfile] = self.dictWords[textfile][contentStart:]
-            except ValueError:
-                pass
+        # Check if the dictionaries folder exists
+        if os.path.exists(dictFolder):
+            # Iterate through writing system subdirectories
+            for writingSystem in os.listdir(dictFolder):
+                wsPath = os.path.join(dictFolder, writingSystem)
+                if os.path.isdir(wsPath):
+                    # Iterate over .txt files in the writing system folder
+                    for fileName in os.listdir(wsPath):
+                        if fileName.lower().endswith(".txt"):
+                            language = os.path.splitext(fileName)[0]
+                            self.textfiles.append((writingSystem, fileName))
+                            self.languageNames.append(language)
 
-        # read user dictionary
-        userFile = open('/usr/share/dict/words', 'r')
-        lines = userFile.read()
-        self.dictWords["user"] = lines.splitlines()
+                            # Build the full file path and load the file
+                            filePath = os.path.join(wsPath, fileName)
+                            try:
+                                with codecs.open(filePath, mode="r", encoding="utf-8") as fo:
+                                    lines = fo.read().splitlines()
+                            except Exception as e:
+                                Message("Error", "Could not load dictionary file:\n%s" % filePath)
+                                continue
+
+                            # If the file contains a header, remove it
+                            try:
+                                contentStart = lines.index(contentLimit) + 1
+                                lines = lines[contentStart:]
+                            except ValueError:
+                                pass
+
+                            # Use the language name as key in the dictionary
+                            self.dictWords[language] = lines
+        else:
+            Message("Error", "Dictionaries folder not found at:\n%s" % dictFolder)
+
+        # Read user dictionary as before (fallback)
+        try:
+            userFile = open('/usr/share/dict/words', 'r')
+            lines = userFile.read().splitlines()
+            self.dictWords["user"] = lines
+        except Exception as e:
+            Message("Error", "Could not load user dictionary:\n%s" % str(e))
 
     def changeSourceCallback(self, sender):
         """On changing source/wordlist, check if a custom word list should be loaded."""
@@ -619,7 +646,7 @@ class WordomatWindow:
         elif self.source == languageCount + 1:  # Use all languages
             for i in range(languageCount):
                 # if any language: concatenate all the wordlists
-                self.allWords.extend(self.dictWords[self.textfiles[i]])
+                self.allWords.extend(self.dictWords[self.languageNames[i]])
         elif self.source == languageCount + 2:  # Custom word list
             try:
                 if self.customWords != []:
@@ -633,7 +660,7 @@ class WordomatWindow:
         else:  # language lists
             for i in range(languageCount):
                 if self.source == i:
-                    self.allWords = self.dictWords[self.textfiles[i]]
+                    self.allWords = self.dictWords[self.languageNames[i]]
 
         # store new values as defaults
 
