@@ -32,10 +32,26 @@ warned = False
 
 class WordomatWindow:
 
+    def writingSystemCallback(self, sender):
+        """Called when the writing system selection changes."""
+        selectedWS = sender.getItem()
+        self.updateLanguagePopUp(selectedWS)
+
+    def updateLanguagePopUp(self, writingSystem):
+        """Update the language pop-up based on the selected writing system."""
+        languages = self.languagesByWS.get(writingSystem, [])
+        self.g1.language.setItems(languages)
+        # Optionally, select the first language if available
+        if languages:
+            self.g1.language.set(0)
+
+    def languageCallback(self, sender):
+        """Called when the language selection changes (if needed for future use)."""
+        pass
+
     def __init__(self):
         """Initialize word-o-mat UI, open the window."""
-
-        # load stuff
+        # load preferences and dictionaries
         self.loadPrefs()
         self.loadDictionaries()
 
@@ -43,15 +59,15 @@ class WordomatWindow:
         addObserver(self, lambda: self.g1.base.enable(True), "fontDidOpen")
         addObserver(self, "fontClosed", "fontWillClose")
 
-        # The rest of this method is just building the window / interface
-
+        # Build the window and UI
         self.w = Window((250, 391), 'word-o-mat')
         padd, bPadd = 12, 3
-        groupW = 250 - 2 * padd
+        groupW = 250 - 2 * padd  # group width
 
-        # Panel 1 - Basic Settings
-        self.g1 = Group((padd, 8, groupW, 96))
+        # Increase the height of the basic settings group to accommodate all elements.
+        self.g1 = Group((padd, 8, groupW, 100))
 
+        # Top line fields (word count, min length, max length)
         topLineFields = {
             "wordCount": [0, 32, self.wordCount, 20],
             "minLength": [110, 28, self.minLength, 3],
@@ -69,50 +85,43 @@ class WordomatWindow:
         for label, values in topLineLabels.items():
             setattr(self.g1, label, TextBox((values[0], 3, values[1], 22), text=values[2], alignment=values[3]))
 
-        # language selection
-        languageOptions = list(self.languageNames)
-        languageOptions.extend(["OSX Dictionary", "Any language", "Custom wordlist..."])
-        self.g1.source = PopUpButton((0, 29, 111, 20), [], callback=self.changeSourceCallback, sizeStyle="small")
-        self.g1.source.setItems(languageOptions)
-        self.g1.source.set(int(self.source))
+        # --- New UI Elements for Writing System and Language selection ---
+        # Place these drop-down menus on one row at y=29.
+        self.g1.writingSystem = PopUpButton((0, 29, 110, 20),
+                                            self.writingSystems,
+                                            callback=self.writingSystemCallback,
+                                            sizeStyle="small")
+        self.g1.language = PopUpButton((116, 29, 110, 20),
+                                       [],
+                                       callback=self.languageCallback,
+                                       sizeStyle="small")
+        # Set initial selection: if any writing systems exist, select the first and update languages accordingly.
+        if self.writingSystems:
+            self.g1.writingSystem.set(0)
+            self.updateLanguagePopUp(self.writingSystems[0])
 
-        # case selection
+        # --- New row for Case selection ---
+        # Move the case selection drop-down below the writing system and language selectors.
         ransom_note = ransom("ransom note")
         caseList = ["Keep case", "make lowercase", "Capitalize", "ALL CAPS", ransom_note]
-        self.g1.case = PopUpButton((115, 29, -0, 20), caseList, sizeStyle="small")
+        self.g1.case = PopUpButton((0, 55, groupW, 20), caseList, sizeStyle="small")
         self.g1.case.set(self.case)
 
-        # character set
+        # --- New row for Character set selection ---
+        # Move the character set (base) drop-down further down.
         charsetList = [
             "Use any characters",
             "Use characters in current font",
             "Use only selected glyphs",
-            # "Use only glyphs with mark color:"
         ]
-        self.g1.base = PopUpButton((0, 53, -0, 20), charsetList, callback=self.baseChangeCallback, sizeStyle="small")
+        self.g1.base = PopUpButton((0, 79, groupW, 20), charsetList, callback=self.baseChangeCallback,
+                                   sizeStyle="small")
         if not CurrentFont():
-            self.g1.base.set(0)    # Use any
-            self.g1.base.enable(False)  # Disable selection
+            self.g1.base.set(0)  # Use any characters
+            self.g1.base.enable(False)  # Disable selection if no font is open
         else:
             self.g1.base.set(self.limitToCharset)
-        '''
-        # mark color selection
-        self.g1.colorWell = NoneTypeColorWell((-22, 61, -0, 22))
-        self.g1.colorWell.set(None)
 
-        # populate from prefs
-        if self.reqMarkColor is not "None": # initial pref
-            try:
-                r, g, b, a = self.reqMarkColor
-                savedColor = NSColor.colorWithCalibratedRed_green_blue_alpha_(r, g, b, a)
-                self.g1.colorWell.set(savedColor)
-            except:
-                pass
-
-        if self.g1.base.get() != 3:
-            self.g1.colorWell.show(0)
-
-        '''
         # Panel 2 - Match letters
         self.g2 = Group((0, 2, 250, 172))
 
@@ -121,19 +130,20 @@ class WordomatWindow:
             dict(width=40, title="Text", enabled=True),
             dict(width=120, title="GREP pattern match", enabled=True)
         ]
-        self.g2.matchMode = SegmentedButton((40, 4, -0, 20), matchBtnItems, callback=self.switchMatchModeCallback, sizeStyle="small")
+        self.g2.matchMode = SegmentedButton((40, 4, -0, 20), matchBtnItems, callback=self.switchMatchModeCallback,
+                                            sizeStyle="small")
         rePanelOn = 1 if self.matchMode == "grep" else 0
         self.g2.matchMode.set(rePanelOn)
 
-        # Text/List match mode
+        # Text/List match mode panel
         self.g2.textMode = Box((padd, 29, -padd, 133))
-
         labelY = [2, 42]
         labelText = ["Require these letters in each word:", "Require one per group in each word:"]
         for i in range(2):
-            setattr(self.g2.textMode, "reqLabel%s" % i, TextBox((bPadd, labelY[i], -bPadd, 22), labelText[i], sizeStyle="small"))
-        self.g2.textMode.mustLettersBox = EditText((bPadd + 2, 18, -bPadd, 19), text=", ".join(self.requiredLetters), sizeStyle="small")
-        # consider using a subclass that allows copy-pasting of glyphs to glyphnames
+            setattr(self.g2.textMode, "reqLabel%s" % i,
+                    TextBox((bPadd, labelY[i], -bPadd, 22), labelText[i], sizeStyle="small"))
+        self.g2.textMode.mustLettersBox = EditText((bPadd + 2, 18, -bPadd, 19), text=", ".join(self.requiredLetters),
+                                                   sizeStyle="small")
         y2 = 36
         attrNameTemplate = "group%sbox"
         for i in range(3):
@@ -144,33 +154,31 @@ class WordomatWindow:
                 optionsList.insert(0, "Recent: " + ", ".join(self.requiredGroups[i]))
             attrName = attrNameTemplate % j
             setattr(self.g2.textMode, attrName, ComboBox((bPadd + 2, y2, -bPadd, 19), optionsList, sizeStyle="small"))
-
         groupBoxes = [self.g2.textMode.group1box, self.g2.textMode.group2box, self.g2.textMode.group3box]
         for i in range(3):
             if len(self.requiredGroups[i]) > 0 and self.requiredGroups[i][0] != "":
                 groupBoxes[i].set(", ".join(self.requiredGroups[i]))
 
-        # RE match mode
+        # GREP match mode panel
         self.g2.grepMode = Box((padd, 29, -padd, 133))
         self.g2.grepMode.label = TextBox((bPadd, 2, -bPadd, 22), "Regular expression to match:", sizeStyle="small")
         self.g2.grepMode.grepBox = EditText((bPadd + 2, 18, -bPadd, 19), text=self.matchPattern, sizeStyle="small")
-
         splainstring = u"This uses Python’s internal re parser.\nExamples:\nf[bhkl] = words with f followed by b, h, k, or l\n.+p.+ = words with p inside them\n^t.*n{2}$ = words starting with t, ending in nn"
-
         self.g2.grepMode.explainer = TextBox((bPadd, 42, -bPadd, 80), splainstring, sizeStyle="mini")
-        self.g2.grepMode.refButton = Button((bPadd, 108, -bPadd, 14), "go to syntax reference", sizeStyle="mini", callback=self.loadREReference)
+        self.g2.grepMode.refButton = Button((bPadd, 108, -bPadd, 14), "go to syntax reference", sizeStyle="mini",
+                                            callback=self.loadREReference)
         self.g2.grepMode.show(0)
-
-        self.toggleMatchModeFields()  # switch to text or grep panel depending
+        self.toggleMatchModeFields()  # Switch to text or grep panel depending on matchMode
 
         # Panel 3 - Options
         self.g3 = Group((padd, 5, groupW, 48))
-        self.g3.checkbox0 = CheckBox((bPadd, 0, -bPadd, 18), "No repeating characters per word", sizeStyle="small", value=self.banRepetitions)
+        self.g3.checkbox0 = CheckBox((bPadd, 0, -bPadd, 18), "No repeating characters per word", sizeStyle="small",
+                                     value=self.banRepetitions)
         self.g3.listOutput = CheckBox((bPadd, 20, -bPadd, 18), "Output as list sorted by width", sizeStyle="small")
 
-        # Display Accordion View
+        # Display Accordion View with updated size for the basic settings panel.
         accItems = [
-            dict(label="Basic settings", view=self.g1, size=89, collapsed=False, canResize=False),
+            dict(label="Basic settings", view=self.g1, size=105, collapsed=False, canResize=False),
             dict(label="Specify required letters", view=self.g2, size=173, collapsed=False, canResize=False),
             dict(label="Options", view=self.g3, size=48, collapsed=False, canResize=False)
         ]
@@ -178,7 +186,6 @@ class WordomatWindow:
         self.w.panel1.accView = AccordionView((0, 0, -0, -0), accItems)
 
         self.w.submit = Button((padd, -32, -padd, 22), 'make words!', callback=self.makeWords)
-
         self.w.bind("close", self.windowClose)
         self.w.setDefaultButton(self.w.submit)
         self.w.open()
@@ -290,26 +297,23 @@ class WordomatWindow:
         # Define the path to the dictionaries folder relative to this file
         dictFolder = os.path.join(os.path.dirname(__file__), "dictionaries")
 
-        # Initialize lists that will be used for the language pop-up menu
-        self.textfiles = []  # Will store tuples: (writingSystem, fileName)
-        self.languageNames = []  # List of language names for the UI pop-up
+        self.languagesByWS = {}  # Maps writing system -> list of language names
+        self.writingSystems = []  # List of writing system names
 
-        contentLimit = '*****'  # Delimiter to strip header if present
+        contentLimit = '*****'  # If a header exists, ignore lines before this delimiter
 
-        # Check if the dictionaries folder exists
         if os.path.exists(dictFolder):
-            # Iterate through writing system subdirectories
+            # Loop over each subfolder (writing system)
             for writingSystem in os.listdir(dictFolder):
                 wsPath = os.path.join(dictFolder, writingSystem)
                 if os.path.isdir(wsPath):
-                    # Iterate over .txt files in the writing system folder
+                    # Initialize the language list for this writing system
+                    self.languagesByWS[writingSystem] = []
                     for fileName in os.listdir(wsPath):
                         if fileName.lower().endswith(".txt"):
                             language = os.path.splitext(fileName)[0]
-                            self.textfiles.append((writingSystem, fileName))
-                            self.languageNames.append(language)
+                            self.languagesByWS[writingSystem].append(language)
 
-                            # Build the full file path and load the file
                             filePath = os.path.join(wsPath, fileName)
                             try:
                                 with codecs.open(filePath, mode="r", encoding="utf-8") as fo:
@@ -318,23 +322,28 @@ class WordomatWindow:
                                 Message("Error", "Could not load dictionary file:\n%s" % filePath)
                                 continue
 
-                            # If the file contains a header, remove it
                             try:
                                 contentStart = lines.index(contentLimit) + 1
                                 lines = lines[contentStart:]
                             except ValueError:
                                 pass
 
-                            # Use the language name as key in the dictionary
-                            self.dictWords[language] = lines
+                            # Store using a tuple key: (writingSystem, language)
+                            self.dictWords[(writingSystem, language)] = lines
+            self.writingSystems = sorted(list(self.languagesByWS.keys()))
         else:
             Message("Error", "Dictionaries folder not found at:\n%s" % dictFolder)
 
-        # Read user dictionary as before (fallback)
+        # Optionally, load the user dictionary as before (if needed)
         try:
-            userFile = open('/usr/share/dict/words', 'r')
-            lines = userFile.read().splitlines()
-            self.dictWords["user"] = lines
+            with open('/usr/share/dict/words', 'r') as userFile:
+                lines = userFile.read().splitlines()
+            self.dictWords[("User", "user")] = lines
+            if "User" in self.languagesByWS:
+                self.languagesByWS["User"].append("user")
+            else:
+                self.languagesByWS["User"] = ["user"]
+                self.writingSystems.append("User")
         except Exception as e:
             Message("Error", "Could not load user dictionary:\n%s" % str(e))
 
@@ -568,10 +577,8 @@ class WordomatWindow:
 
     def makeWords(self, sender=None):
         """Parse user input, save new values to prefs, compile and display the resulting words.
-
         I think this function is too long and bloated, it should be taken apart. ########
         """
-
         global warned
         self.f = CurrentFont()
 
@@ -592,7 +599,8 @@ class WordomatWindow:
 
         if self.limitToCharset == 2:  # use selection
             if len(self.f.selection) == 0:  # nothing selected
-                Message(title="word-o-mat", message="No glyphs were selected in the font window. Will use any characters available in the current font.")
+                Message(title="word-o-mat",
+                        message="No glyphs were selected in the font window. Will use any characters available in the current font.")
                 self.g1.base.set(1)  # use font chars
             else:
                 try:
@@ -605,30 +613,14 @@ class WordomatWindow:
                     pass
 
         elif self.limitToCharset == 3:  # use mark color
-            '''
-            c = self.g1.colorWell.get()
-
-            if c is None:
-                pass
-            elif c.className() == "NSCachedWhiteColor": # not set, corresponds to mark color set to None
-                c = None
-            '''
             self.customCharset = []
-            '''
-            self.reqMarkColor = (c.redComponent(), c.greenComponent(), c.blueComponent(), c.alphaComponent()) if c is not None else None
-            for g in self.f:
-                if g.mark == self.reqMarkColor:
-                    try:
-                        self.customCharset.append(unichr(int(g.unicode)))
-                    except:
-                        pass
-            '''
             if len(self.customCharset) == 0:
-                Message(title="word-o-mat", message="Found no glyphs that match the specified mark color. Will use any characters available in the current font.")
+                Message(title="word-o-mat",
+                        message="Found no glyphs that match the specified mark color. Will use any characters available in the current font.")
                 self.g1.base.set(1)  # use font chars
                 self.toggleColorSwatch(0)
 
-            self.matchMode = "text" if self.g2.matchMode.get() == 0 else "grep"  # braucht es diese zeile noch?
+            self.matchMode = "text" if self.g2.matchMode.get() == 0 else "grep"  # adjust match mode accordingly
 
         self.requiredLetters = self.getInputString(self.g2.textMode.mustLettersBox, False)
         self.requiredGroups[0] = self.getInputString(self.g2.textMode.group1box, True)
@@ -639,31 +631,16 @@ class WordomatWindow:
         self.banRepetitions = self.g3.checkbox0.get()
         self.outputWords = []  # initialize/empty
 
-        self.source = self.g1.source.get()
-        languageCount = len(self.textfiles)
-        if self.source == languageCount:  # User Dictionary
-            self.allWords = self.dictWords["user"]
-        elif self.source == languageCount + 1:  # Use all languages
-            for i in range(languageCount):
-                # if any language: concatenate all the wordlists
-                self.allWords.extend(self.dictWords[self.languageNames[i]])
-        elif self.source == languageCount + 2:  # Custom word list
-            try:
-                if self.customWords != []:
-                    self.allWords = self.customWords
-                else:
-                    self.allWords = self.dictWords["ukacd"]
-                    self.g1.source.set(0)
-            except AttributeError:
-                self.allWords = self.dictWords["ukacd"]
-                self.g1.source.set(0)
-        else:  # language lists
-            for i in range(languageCount):
-                if self.source == i:
-                    self.allWords = self.dictWords[self.languageNames[i]]
+        # ---- NEW DICTIONARY SELECTION USING TWO DROP-DOWN MENUS ----
+        selectedWS = self.g1.writingSystem.getItem()
+        selectedLanguage = self.g1.language.getItem()
+        if (selectedWS, selectedLanguage) in self.dictWords:
+            self.allWords = self.dictWords[(selectedWS, selectedLanguage)]
+        else:
+            Message(title="Error", message="Selected dictionary not found.")
+            return
 
         # store new values as defaults
-
         markColorPref = self.reqMarkColor if self.reqMarkColor is not None else "None"
 
         extDefaults = {
@@ -672,7 +649,7 @@ class WordomatWindow:
             "maxLength": self.maxLength,
             "case": self.case,
             "limitToCharset": self.limitToCharset,
-            "source": self.source,
+            "source": "",  # Not used anymore, but kept for backwards compatibility if needed
             "matchMode": self.matchMode,
             "matchPattern": self.matchPattern,  # non compiled string
             "markColor": markColorPref,
@@ -681,9 +658,13 @@ class WordomatWindow:
             setExtensionDefault("com.ninastoessinger.word-o-mat." + key, value)
 
         # go make words
-        if self.checkInput(self.limitToCharset, self.fontChars, self.customCharset, self.requiredLetters, self.minLength, self.maxLength, self.case):
+        if self.checkInput(self.limitToCharset, self.fontChars, self.customCharset, self.requiredLetters,
+                           self.minLength, self.maxLength, self.case):
 
-            checker = wordcheck.wordChecker(self.limitToCharset, self.fontChars, self.customCharset, self.requiredLetters, self.requiredGroups, self.matchPatternRE, self.banRepetitions, self.minLength, self.maxLength, matchMode=self.matchMode)
+            checker = wordcheck.wordChecker(self.limitToCharset, self.fontChars, self.customCharset,
+                                            self.requiredLetters, self.requiredGroups, self.matchPatternRE,
+                                            self.banRepetitions, self.minLength, self.maxLength,
+                                            matchMode=self.matchMode)
 
             for i in self.allWords:
                 if len(self.outputWords) >= self.wordCount:
@@ -693,25 +674,20 @@ class WordomatWindow:
                     if self.case == 1:
                         w = w.lower()
                     elif self.case == 2:
-                        # special capitalization rules for Dutch IJ
-                        # this only works when Dutch is selected as language, not "any".
                         try:
                             ijs = ["ij", "IJ", "Ij"]
-                            if self.languageNames[self.source] == "Dutch" and w[:2] in ijs:
-                                wNew = "IJ" + w[2:]
-                                w = wNew
+                            # Note: Adjust this section if needed based on the language selected.
+                            if w[:2] in ijs:
+                                w = "IJ" + w[2:]
                             else:
                                 w = w.title()
                         except IndexError:
                             w = w.title()
                     elif self.case == 3:
-                        # special capitalization rules for German double s
                         if u"ß" in w:
-                            w2 = w.replace(u"ß", "ss")
-                            w = w2
+                            w = w.replace(u"ß", "ss")
                         w = w.upper()
                     elif self.case == 4:
-                        # RaNsom notE
                         w = ransom(w)
 
                     if checker.checkWord(w, self.outputWords):
@@ -731,7 +707,8 @@ class WordomatWindow:
                     sp.setRaw(outputString)
                 except:
                     if not warned:
-                        Message(title="word-o-mat", message="No open fonts found; words will be displayed in the Output Window.")
+                        Message(title="word-o-mat",
+                                message="No open fonts found; words will be displayed in the Output Window.")
                     warned = True
                     print("word-o-mat:", outputString)
         else:
