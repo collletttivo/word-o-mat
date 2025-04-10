@@ -60,7 +60,7 @@ class WordomatWindow:
         addObserver(self, "fontClosed", "fontWillClose")
 
         # Build the window and UI
-        self.w = Window((250, 391), 'word-o-mat')
+        self.w = Window((250, 491), 'word-o-mat')
         padd, bPadd = 12, 3
         groupW = 250 - 2 * padd  # group width
 
