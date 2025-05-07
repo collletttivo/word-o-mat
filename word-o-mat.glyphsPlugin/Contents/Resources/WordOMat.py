@@ -60,12 +60,12 @@ class WordomatWindow:
         addObserver(self, "fontClosed", "fontWillClose")
 
         # Build the window and UI
-        self.w = Window((250, 491), 'word-o-mat')
+        self.w = Window((250, 430), 'word-o-mat')
         padd, bPadd = 12, 3
         groupW = 250 - 2 * padd  # group width
 
         # Increase the height of the basic settings group to accommodate all elements.
-        self.g1 = Group((padd, 8, groupW, 100))
+        self.g1 = Group((padd, 2, groupW, 100))
 
         # Top line fields (word count, min length, max length)
         topLineFields = {
@@ -86,7 +86,6 @@ class WordomatWindow:
             setattr(self.g1, label, TextBox((values[0], 3, values[1], 22), text=values[2], alignment=values[3]))
 
         # --- New UI Elements for Writing System and Language selection ---
-        # Place these drop-down menus on one row at y=29.
         self.g1.writingSystem = PopUpButton((0, 29, 110, 20),
                                             self.writingSystems,
                                             callback=self.writingSystemCallback,
@@ -100,22 +99,17 @@ class WordomatWindow:
             self.g1.writingSystem.set(0)
             self.updateLanguagePopUp(self.writingSystems[0])
 
-        # --- New row for Case selection ---
-        # Move the case selection drop-down below the writing system and language selectors.
         ransom_note = ransom("ransom note")
         caseList = ["Keep case", "make lowercase", "Capitalize", "ALL CAPS", ransom_note]
-        self.g1.case = PopUpButton((0, 55, groupW, 20), caseList, sizeStyle="small")
+        self.g1.case = PopUpButton((0, 52, groupW, 20), caseList, sizeStyle="small")
         self.g1.case.set(self.case)
 
-        # --- New row for Character set selection ---
-        # Move the character set (base) drop-down further down.
         charsetList = [
             "Use any characters",
             "Use characters in current font",
             "Use only selected glyphs",
         ]
-        self.g1.base = PopUpButton((0, 79, groupW, 20), charsetList, callback=self.baseChangeCallback,
-                                   sizeStyle="small")
+        self.g1.base = PopUpButton((0, 75, groupW, 20), charsetList, sizeStyle="small")
         if not CurrentFont():
             self.g1.base.set(0)  # Use any characters
             self.g1.base.enable(False)  # Disable selection if no font is open
@@ -171,12 +165,11 @@ class WordomatWindow:
         self.toggleMatchModeFields()  # Switch to text or grep panel depending on matchMode
 
         # Panel 3 - Options
-        self.g3 = Group((padd, 5, groupW, 48))
+        self.g3 = Group((padd, 8, groupW, 48))
         self.g3.checkbox0 = CheckBox((bPadd, 0, -bPadd, 18), "No repeating characters per word", sizeStyle="small",
                                      value=self.banRepetitions)
         self.g3.listOutput = CheckBox((bPadd, 20, -bPadd, 18), "Output as list sorted by width", sizeStyle="small")
 
-        # Display Accordion View with updated size for the basic settings panel.
         accItems = [
             dict(label="Basic settings", view=self.g1, size=105, collapsed=False, canResize=False),
             dict(label="Specify required letters", view=self.g2, size=173, collapsed=False, canResize=False),
