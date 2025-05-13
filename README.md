@@ -1,6 +1,6 @@
 # word-o-mat v4.0 a 
 
-![word-o-mat screenshot](/screenshotGlyphs.png)
+![word-o-mat screenshot](/screenshot.png)
 
 Word-o-mat now auto-builds the list available in the drop down from the file system inside 
 
